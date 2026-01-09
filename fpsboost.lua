@@ -1,15 +1,16 @@
--- FPS BOOST EXTREME FULL (STREAM SAFE + HARD MUTE)
+-- FPS BOOST EXTREME FULL (STREAMING SAFE)
 
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
-local SoundService = game:GetService("SoundService")
 local Player = Players.LocalPlayer
 
 -- ===== REMOVE CLOUDS =====
 for _,v in pairs(Workspace:GetDescendants()) do
-    if v:IsA("Clouds") then v:Destroy() end
+    if v:IsA("Clouds") then
+        v:Destroy()
+    end
 end
 
 -- ===== LIGHTING OFF =====
@@ -30,12 +31,15 @@ end
 
 -- ===== BLACK SKY =====
 local sky = Instance.new("Sky", Lighting)
-sky.SkyboxBk,sky.SkyboxDn,sky.SkyboxFt = "rbxassetid://0","rbxassetid://0","rbxassetid://0"
-sky.SkyboxLf,sky.SkyboxRt,sky.SkyboxUp = "rbxassetid://0","rbxassetid://0","rbxassetid://0"
+sky.SkyboxBk = "rbxassetid://0"
+sky.SkyboxDn = "rbxassetid://0"
+sky.SkyboxFt = "rbxassetid://0"
+sky.SkyboxLf = "rbxassetid://0"
+sky.SkyboxRt = "rbxassetid://0"
+sky.SkyboxUp = "rbxassetid://0"
 sky.StarCount = 0
 
--- ===== HARD SOUND KILL (NO 0.1s) =====
-SoundService.Volume = 0
+-- ===== DELETE ALL SOUND (SAFE) =====
 for _,v in pairs(game:GetDescendants()) do
     if v:IsA("Sound") then
         v.Volume = 0
@@ -43,15 +47,15 @@ for _,v in pairs(game:GetDescendants()) do
         v:Destroy()
     end
 end
+
 game.DescendantAdded:Connect(function(v)
     if v:IsA("Sound") then
         v.Volume = 0
-        v.Playing = false
         v:Destroy()
     end
 end)
 
--- ===== APPLY GRAY BLOCK / SEA (INITIAL) =====
+-- ===== APPLY GRAY FUNCTION =====
 local function applyGray(v)
     if v:IsA("Terrain") then
         v.WaterWaveSize = 0
@@ -59,13 +63,16 @@ local function applyGray(v)
         v.WaterReflectance = 0
         v.WaterTransparency = 1
         v.WaterColor = Color3.fromRGB(120,120,120)
+
     elseif v:IsA("BasePart") then
         v.CastShadow = false
         v.Material = Enum.Material.Plastic
         v.Reflectance = 0
         v.Color = Color3.fromRGB(140,140,140)
+
     elseif v:IsA("Decal") or v:IsA("Texture") then
         v:Destroy()
+
     elseif v:IsA("ParticleEmitter")
         or v:IsA("Trail")
         or v:IsA("Beam")
@@ -79,14 +86,17 @@ local function applyGray(v)
     end
 end
 
+-- ===== INITIAL MAP APPLY =====
 for _,v in pairs(Workspace:GetDescendants()) do
     applyGray(v)
 end
 
--- ===== STREAMING FIX: MAP LOAD TỚI ĐÂU XÁM TỚI ĐÓ =====
+-- ===== STREAMING FIX (CRITICAL) =====
 Workspace.DescendantAdded:Connect(function(v)
     task.wait()
-    pcall(function() applyGray(v) end)
+    pcall(function()
+        applyGray(v)
+    end)
 end)
 
 -- ===== INVISIBLE CHARACTER (ALL PLAYERS) =====
@@ -102,8 +112,11 @@ local function invisibleChar(char)
 end
 
 for _,plr in pairs(Players:GetPlayers()) do
-    if plr.Character then invisibleChar(plr.Character) end
+    if plr.Character then
+        invisibleChar(plr.Character)
+    end
 end
+
 Players.PlayerAdded:Connect(function(plr)
     plr.CharacterAdded:Connect(invisibleChar)
 end)
@@ -113,7 +126,7 @@ pcall(function()
     settings().Rendering.QualityLevel = 1
 end)
 
--- ===== FPS COUNTER (RAINBOW - ALWAYS ON) =====
+-- ===== FPS COUNTER (RAINBOW) =====
 local gui = Instance.new("ScreenGui")
 gui.ResetOnSpawn = false
 gui.Parent = Player:WaitForChild("PlayerGui")
