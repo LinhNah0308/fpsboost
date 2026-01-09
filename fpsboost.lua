@@ -1,95 +1,98 @@
--- ABSOLUTE FPS BOOST (KEEP SOUND)
--- DELETE EVERYTHING POSSIBLE EXCEPT AUDIO
-
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
+local Player = Players.LocalPlayer
 
--- ===== LIGHTING NUKED =====
-pcall(function()
-    for _,v in pairs(Lighting:GetChildren()) do
+-- ===== REMOVE CLOUDS =====
+for _,v in pairs(Workspace:GetDescendants()) do
+    if v:IsA("Clouds") then
         v:Destroy()
     end
+end
+
+-- ===== LIGHTING MIN =====
+pcall(function()
     Lighting.GlobalShadows = false
-    Lighting.Brightness = 0
     Lighting.FogEnd = 1e10
+    Lighting.Brightness = 0
 end)
 
--- ===== DESTROY / HIDE EVERYTHING (EXCEPT SOUND) =====
-for _,v in pairs(Workspace:GetDescendants()) do
+for _,v in pairs(Lighting:GetChildren()) do
+    if v:IsA("PostEffect") then
+        v.Enabled = false
+    end
+end
+
+-- ===== DELETE SOUND =====
+for _,v in pairs(game:GetDescendants()) do
     if v:IsA("Sound") then
-        -- KEEP SOUND
+        v:Destroy()
+    end
+end
+
+-- ===== MAP + SEA EXTREME OPTIMIZE (NOT FULL DELETE) =====
+for _,v in pairs(Workspace:GetDescendants()) do
+    if v:IsA("Terrain") then
+        -- Sea / terrain tối giản
+        v.WaterWaveSize = 0
+        v.WaterWaveSpeed = 0
+        v.WaterReflectance = 0
+        v.WaterTransparency = 1
     elseif v:IsA("BasePart") then
-        v.Transparency = 1
         v.CastShadow = false
         v.Material = Enum.Material.Plastic
         v.Reflectance = 0
-        v.Anchored = true
-    elseif v:IsA("Decal")
-        or v:IsA("Texture")
-        or v:IsA("SurfaceAppearance") then
+    elseif v:IsA("Decal") or v:IsA("Texture") then
         v:Destroy()
     elseif v:IsA("ParticleEmitter")
         or v:IsA("Trail")
         or v:IsA("Beam")
         or v:IsA("Fire")
         or v:IsA("Smoke")
-        or v:IsA("Sparkles")
-        or v:IsA("Explosion") then
+        or v:IsA("Sparkles") then
         v.Enabled = false
-    elseif v:IsA("Model") then
-        pcall(function() v:Destroy() end)
     end
 end
 
--- ===== CHARACTER DELETE (VISUAL ONLY) =====
-local function nukeChar(char)
+-- ===== INVISIBLE CHARACTER (ALL PLAYERS) =====
+local function invisibleChar(char)
     for _,v in pairs(char:GetDescendants()) do
-        if v:IsA("Sound") then
-            -- KEEP SOUND
-        elseif v:IsA("BasePart") then
-            v.Transparency = 1
-            v.CastShadow = false
-        else
-            pcall(function() v:Destroy() end)
-        end
-    end
-end
-
-for _,p in pairs(Players:GetPlayers()) do
-    if p.Character then
-        nukeChar(p.Character)
-    end
-end
-
-Players.PlayerAdded:Connect(function(p)
-    p.CharacterAdded:Connect(nukeChar)
-end)
-
--- ===== AUTO DELETE NEW OBJECTS (EXCEPT SOUND) =====
-Workspace.DescendantAdded:Connect(function(v)
-    if v:IsA("Sound") then
-        return
-    end
-    pcall(function()
         if v:IsA("BasePart") then
             v.Transparency = 1
             v.CastShadow = false
-            v.Anchored = true
-        else
+        elseif v:IsA("Decal") then
             v:Destroy()
         end
-    end)
-end)
-
--- ===== DELETE OTHER GUI (KEEP OWN GUI) =====
-for _,v in pairs(LocalPlayer.PlayerGui:GetChildren()) do
-    if not v:IsA("ScreenGui") then
-        v:Destroy()
     end
 end
+
+for _,plr in pairs(Players:GetPlayers()) do
+    if plr.Character then
+        invisibleChar(plr.Character)
+    end
+end
+
+Players.PlayerAdded:Connect(function(plr)
+    plr.CharacterAdded:Connect(invisibleChar)
+end)
+
+-- ===== AUTO DELETE NEW EFFECTS + SOUND =====
+Workspace.DescendantAdded:Connect(function(v)
+    if v:IsA("Sound") then
+        v:Destroy()
+    elseif v:IsA("Decal")
+        or v:IsA("Texture")
+        or v:IsA("ParticleEmitter")
+        or v:IsA("Trail")
+        or v:IsA("Beam")
+        or v:IsA("Fire")
+        or v:IsA("Smoke")
+        or v:IsA("Sparkles") then
+        task.wait()
+        pcall(function() v:Destroy() end)
+    end
+end)
 
 -- ===== LOWEST RENDER =====
 pcall(function()
@@ -97,16 +100,18 @@ pcall(function()
 end)
 
 -- ===== FPS COUNTER (RAINBOW) =====
-local gui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
+local gui = Instance.new("ScreenGui")
 gui.ResetOnSpawn = false
+gui.Parent = Player:WaitForChild("PlayerGui")
 
-local label = Instance.new("TextLabel", gui)
+local label = Instance.new("TextLabel")
 label.Size = UDim2.new(0,160,0,30)
 label.Position = UDim2.new(0,10,0,10)
 label.BackgroundTransparency = 1
 label.TextScaled = true
 label.Font = Enum.Font.SourceSansBold
 label.Text = "FPS : 0"
+label.Parent = gui
 
 local frames, last, hue = 0, tick(), 0
 
